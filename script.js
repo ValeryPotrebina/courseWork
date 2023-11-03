@@ -1,4 +1,6 @@
 const video = document.getElementById('video')
+const canvas = document.getElementById('canvas')
+const context = canvas.getContext("2d")
 
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
@@ -22,30 +24,44 @@ function startVideo() {
 }
 
 video.addEventListener('play', () => {
-    const canvas = faceapi.createCanvasFromMedia(video)
-    document.body.append(canvas)
-    const displaySize = { width: video.width, height: video.height }
-    faceapi.matchDimensions(canvas, displaySize)
-    setInterval(async () => {
-        const detection = await faceapi.detectSingleFace(video,
-            new faceapi.TinyFaceDetectorOptions())
-            .withFaceLandmarks()
-            .withFaceExpressions()
-        if (!detection) {
-            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
-            return
-        }
-        // console.log(detection.landmarks.getJawOutline())
-        const resizedDetection = faceapi.resizeResults(detection, displaySize)
-        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
-        getPieceOfFace(resizedDetection, canvas)
-        faceapi.draw.drawDetections(canvas, resizedDetection)
-        faceapi.draw.drawFaceLandmarks(canvas, resizedDetection)
-
-        // faceapi.draw.drawFaceExpressions(canvas, resizedDetection)
-    }, 100)
+    setTimeout(() => {
+        detectFace()
+    })
 
 })
+
+async function detectFace() {
+    const imgData = getFrame()
+    const detection = await faceapi.detectSingleFace(video,
+        new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceExpressions()
+    if (!detection) {
+        setTimeout(() => detectFace())
+        context.clearRect(0, 0, canvas.width, canvas.height)
+        return
+    }
+    // console.log(detection.landmarks.getJawOutline())
+    const displaySize = faceapi.matchDimensions(canvas, video)
+    console.log(displaySize);
+    const resizedDetection = faceapi.resizeResults(detection, displaySize)
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    const area = getPieceOfFace(resizedDetection, canvas)
+    area.forEach((p) => drawPiecesOfFace(p, canvas))
+
+    //---------------------------
+    const color = getAreaColor(imgData, area[0])
+    console.log(makeSignal(color))
+    addSignal(makeSignal(color))
+
+    //-------------------------
+    faceapi.draw.drawDetections(canvas, resizedDetection)
+    faceapi.draw.drawFaceLandmarks(canvas, resizedDetection)
+    // faceapi.draw.drawFaceExpressions(canvas, resizedDetection)
+    setTimeout(() => detectFace())
+}
+
+
 
 function getPieceOfFace(detection, canvas) {
     const noseLine = [detection.landmarks.getNose()[1], detection.landmarks.getNose()[2]]
@@ -59,11 +75,9 @@ function getPieceOfFace(detection, canvas) {
         ...left_brow.map((point) => pointProjection(point, upLine)),
         ...left_brow.map((point) => pointProjection(point, downLine)).reverse()
     ]
-    drawPiecesOfFace(leftCheekPoints, canvas)
-    //
     // pointProjection(left_brow[0], upJawLine)
     // pointProjection(left_brow[0], downJawLine)
-    
+
     // pointProjection(left_brow[1], upJawLine)
     // pointProjection(left_brow[1], downJawLine)
 
@@ -72,31 +86,15 @@ function getPieceOfFace(detection, canvas) {
         ...right_brow.map((point) => pointProjection(point, upLine)),
         ...right_brow.map((point) => pointProjection(point, downLine)).reverse()
     ]
-    drawPiecesOfFace(rightCheekPoints, canvas)
 
-    // pointProjection(right_brow[0], upJawLine)
-    // pointProjection(right_brow[0], downJawLine)
+    return [leftCheekPoints, rightCheekPoints]
 
-    // pointProjection(right_brow[1], upJawLine)
-    // pointProjection(right_brow[1], downJawLine)
-
-    
-    // context.beginPath()
-    // context.moveTo(upJawLine[0]._x, upJawLine[0]._y)
-    // context.lineTo(upJawLine[1]._x, upJawLine[1]._y)
-    // context.moveTo(downJawLine[0]._x, downJawLine[0]._y)
-    // context.lineTo(downJawLine[1]._x, downJawLine[1]._y)
-    // context.stroke()
 }
 
-function drawPiecesOfFace(points, canvas){
-    const context = canvas.getContext('2d')
+function drawPiecesOfFace(points, canvas) {
     context.beginPath()
     context.moveTo(points[points.length - 1]._x, points[points.length - 1]._y)
     points.forEach(p => context.lineTo(p._x, p._y))
-    // for (let i = 0; i < points.length; i ++){
-    //     context.lineTo(points[i]._x, points[i]._y)
-    // }
     context.stroke()
 }
 
@@ -127,7 +125,7 @@ console.log(pointProjection({ _x: 0, _y: 1 }, [{ _x: 0, _y: 0 }, { _x: 1, _y: 1 
 // point[0]._x * unitVector[1] + normalVector[0] * k2 * unitVector[1]  - line[0]._x * unitVector[1] = point[0]._y * unitVector[0] + normalVector[1] * k2 * unitVector[0] -  line[0]._y * unitVector[0]
 // normalVector[0] * k2 * unitVector[1] - normalVector[1] * k2 * unitVector[0] =  line[0]._x * unitVector[1] - point[0]._x * unitVector[1] +  point[0]._y * unitVector[0] -  line[0]._y * unitVector[0]
 
-function makePerpendicularLine(point, line){
+function makePerpendicularLine(point, line) {
     //Находим вектора
     const vector = [line[1]._x - line[0]._x, line[1]._y - line[0]._y]
     const moduleVector = Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1])
@@ -139,5 +137,23 @@ function makePerpendicularLine(point, line){
         _y: point._y + normalVector[1]
     }
     return point._x < secondPoint._x ? [point, secondPoint] : [secondPoint, point]
-    
+
 }
+
+function getFrame() {
+    const canvasForFrame = document.createElement('canvas')
+    const displaySize = faceapi.matchDimensions(canvasForFrame, video)
+    const contextForFrame = canvasForFrame.getContext('2d')
+    contextForFrame.drawImage(video, 0, 0, displaySize.width, displaySize.height);
+    const arrayPixelsOfOneFrame = contextForFrame.getImageData(0, 0, displaySize.width, displaySize.height)
+    canvasForFrame.remove()
+    return arrayPixelsOfOneFrame;
+}
+
+
+// TODO: 1. брать кадры
+// TODO: 1. Вычислять цвет (усредненный) на области
+// TODO: 1. Как-то перевести 3 цвета в сигнал от 0 до 1
+// TODO: 1. Строить график чсс в реальном времени 
+
+

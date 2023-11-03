@@ -1,0 +1,52 @@
+
+//лаба 4 по графике
+//edge = [p1, p2]
+//p1 = [x, y]
+
+
+function getAreaColor(imgData, area){
+    // console.log(imgData);
+    const color = []
+    const lines = {}
+    const edges = makeEdges(area.map((p) => ({
+        _x: Math.round(p._x),
+        _y: Math.round(p._y)
+    })))
+    // console.log(edges);
+    edges.forEach((edge) => {
+        if (edge[0]._y == edge[1]._y)
+            return
+        const yMinIndex = edge[0]._y < edge[1]._y ? 0 : 1
+        const x = (y) => (((y - edge[0]._y)*(edge[1]._x - edge[0]._x)) / (edge[1]._y - edge[0]._y)) + edge[0]._x
+        for(let i = edge[yMinIndex]._y; i < edge[(yMinIndex + 1) % 2]._y; i++){
+            if (!lines[i]){
+                lines[i] = []
+            }
+            lines[i].push(Math.round(x(i)))
+        }
+    })
+    for(let i in lines){
+        lines[i].sort((a, b) => a - b)
+        for(let j = 0; j < Math.floor(lines[i].length / 2); j++){
+            for(let k = lines[i][2*j]; k < (lines[i][2*j+1] + 1); k++){
+                const index = i * imgData.width + k
+                color.push([imgData.data[index * 4], imgData.data[index * 4 + 1], imgData.data[index * 4 + 2]])
+            }
+        }
+    }
+    // console.log(imgData.length, imgData.width, imgData.height);
+    // console.log(color);
+    return color.reduce((result, current) => result.map((res, i) => res + current[i])).map((a) => Math.round(a / color.length))
+}
+
+function makeEdges(points){
+    return points.map((p, i, self) => {
+        if (i == self.length - 1)
+            return [p, self[0]]
+        return [p, self[i + 1]]
+    })
+}
+
+function makeSignal(color){
+    return color[0] / 255
+}

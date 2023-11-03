@@ -6,7 +6,10 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>Face datection</title>
         <script defer src="face-api.min.js"></script>
+        <script defer src="color.js"></script>
+        <script defer src="graph.js"></script>
         <script defer src="script.js"></script>
+    
         <style>
             body {
                 margin: 0;
@@ -18,14 +21,31 @@
                 align-items: center;
             }
 
+            .container {
+                position: relative;
+            }
+
             canvas {
                 position: absolute;
+                inset: 0;
+            }
+            path {
+                stroke: black;
+                stroke-width: 2;
+                fill: none;
             }
         </style>
     
     </head>
 
     <body>
-        <video id="video" width="1000" height="700" autoplay muted>
+        <div class="container">
+            <video id="video" width="800" height="600" autoplay muted></video>   
+            <canvas id="canvas"></canvas> 
+        </div>
+        
+        <svg width="400" height="400">
+            <path id="graph" d=""></path>
+        </svg>
     </body>
 </html>
