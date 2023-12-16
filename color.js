@@ -16,8 +16,10 @@ function getAreaColor(imgData, area){
     edges.forEach((edge) => {
         if (edge[0]._y == edge[1]._y)
             return
-        const yMinIndex = edge[0]._y < edge[1]._y ? 0 : 1
+        const yMinIndex = edge[0]._y < edge[1]._y ? 0 : 1 //y = kx + b -> x = ((y* - y0) - ((y0 - y1) / (x0 - x1))*x0) / ((y0 - y1) / (x0 - x1))
+                                                                            // (y* - y0)* (x0 - x1))*x0 - (y0 - y1) / ()
         const x = (y) => (((y - edge[0]._y)*(edge[1]._x - edge[0]._x)) / (edge[1]._y - edge[0]._y)) + edge[0]._x
+        0// y = kx + b -> x = (y - b) / k              k = (y0 - y1 / x0 - x1) , b = y0 - (y0 - y1 / x0 - x1)*x0
         for(let i = edge[yMinIndex]._y; i < edge[(yMinIndex + 1) % 2]._y; i++){
             if (!lines[i]){
                 lines[i] = []
@@ -25,9 +27,10 @@ function getAreaColor(imgData, area){
             lines[i].push(Math.round(x(i)))
         }
     })
+    
     for(let i in lines){
         lines[i].sort((a, b) => a - b)
-        for(let j = 0; j < Math.floor(lines[i].length / 2); j++){
+        for(let j = 0; j < Math.floor(lines[i].length / 2); j++){ //цикл по парам
             for(let k = lines[i][2*j]; k < (lines[i][2*j+1] + 1); k++){
                 const index = i * imgData.width + k
                 color.push([imgData.data[index * 4], imgData.data[index * 4 + 1], imgData.data[index * 4 + 2]])

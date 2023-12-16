@@ -30,6 +30,9 @@ video.addEventListener('play', () => {
 
 })
 
+
+
+
 async function detectFace() {
     const imgData = getFrame()
     const detection = await faceapi.detectSingleFace(video,
@@ -41,9 +44,7 @@ async function detectFace() {
         context.clearRect(0, 0, canvas.width, canvas.height)
         return
     }
-    // console.log(detection.landmarks.getJawOutline())
     const displaySize = faceapi.matchDimensions(canvas, video)
-    console.log(displaySize);
     const resizedDetection = faceapi.resizeResults(detection, displaySize)
     context.clearRect(0, 0, canvas.width, canvas.height)
     const area = getPieceOfFace(resizedDetection, canvas)
@@ -51,7 +52,7 @@ async function detectFace() {
 
     //---------------------------
     const color = getAreaColor(imgData, area[0])
-    console.log(makeSignal(color))
+    // console.log(makeSignal(color))
     addSignal(makeSignal(color))
 
     //-------------------------
@@ -115,9 +116,9 @@ function pointProjection(point, line) {
     }
 }
 
-console.log(pointProjection({ _x: 0, _y: 1 }, [{ _x: -1, _y: 0 }, { _x: 1, _y: 0 }]));
-console.log(pointProjection({ _x: 0, _y: 1 }, [{ _x: 1, _y: 0 }, { _x: 1, _y: 2 }]));
-console.log(pointProjection({ _x: 0, _y: 1 }, [{ _x: 0, _y: 0 }, { _x: 1, _y: 1 }]));
+// console.log(pointProjection({ _x: 0, _y: 1 }, [{ _x: -1, _y: 0 }, { _x: 1, _y: 0 }]));
+// console.log(pointProjection({ _x: 0, _y: 1 }, [{ _x: 1, _y: 0 }, { _x: 1, _y: 2 }]));
+// console.log(pointProjection({ _x: 0, _y: 1 }, [{ _x: 0, _y: 0 }, { _x: 1, _y: 1 }]));
 
 
 // (point[0]._x + normalVector[0] * k2 - line[0]._x) * unitVector[1]  = (point[0]._y + normalVector[1] * k2 - line[0]._y)* unitVector[0]
@@ -145,10 +146,12 @@ function getFrame() {
     const displaySize = faceapi.matchDimensions(canvasForFrame, video)
     const contextForFrame = canvasForFrame.getContext('2d')
     contextForFrame.drawImage(video, 0, 0, displaySize.width, displaySize.height);
-    const arrayPixelsOfOneFrame = contextForFrame.getImageData(0, 0, displaySize.width, displaySize.height)
+    // testContext.drawImage(video, 0, 0, displaySize.width, displaySize.height);
+    const PixelsOfOneFrame = contextForFrame.getImageData(0, 0, displaySize.width, displaySize.height)
     canvasForFrame.remove()
-    return arrayPixelsOfOneFrame;
+    return PixelsOfOneFrame;
 }
+
 
 
 // TODO: 1. брать кадры

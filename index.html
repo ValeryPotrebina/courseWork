@@ -6,36 +6,12 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>Face datection</title>
         <script defer src="face-api.min.js"></script>
+        <script defer src="fft.js" ></script>
         <script defer src="color.js"></script>
         <script defer src="graph.js"></script>
+        <!-- <script defer src="test.js"></script> -->
         <script defer src="script.js"></script>
-    
-        <style>
-            body {
-                margin: 0;
-                padding: 0;
-                width: 100vw;
-                height: 100vh;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .container {
-                position: relative;
-            }
-
-            canvas {
-                position: absolute;
-                inset: 0;
-            }
-            path {
-                stroke: black;
-                stroke-width: 2;
-                fill: none;
-            }
-        </style>
-    
+        <link rel="stylesheet" href="style.css">
     </head>
 
     <body>
@@ -47,5 +23,13 @@
         <svg width="400" height="400">
             <path id="graph" d=""></path>
         </svg>
+
+        <svg id="svgFFT" width="400" height="400" preserveAspectRatio="none">
+            <path id="graphFFT" d=""></path>
+        </svg>
+
+         <!--  -->
+        <canvas class="testCanvas" id="testCanvas" width="340" height="340"></canvas>
+        <!--  -->
     </body>
 </html>

@@ -1,0 +1,31 @@
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    position: relative;
+}
+
+canvas {
+    position: absolute;
+    inset: 0;
+}
+path {
+    stroke: black;
+    stroke-width: 1;
+    fill: none;
+}
+svg {
+    border: 2px solid black;
+}
+.testCanvas {
+    /* border: 2px solid black; */
+    left: 10%;
+    top: 90%;
+}
