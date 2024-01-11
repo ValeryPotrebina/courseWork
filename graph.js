@@ -1,15 +1,18 @@
 const path = document.getElementById('graph')
 const pathFFT = document.getElementById('graphFFT')
 const svgFFT = document.getElementById('svgFFT')
+const svgSignal = document.getElementById('signal')
+
 const PATH_WIDTH = 400
 const PATH_HEIGHT = 400
 const signals = []
+
 const SIGNAL_MAX = 1
 let lastTime = undefined
 const MAX_TIME = 15000
 
 // N - следующая степень двойки после MAX_TIME
-const N = Math.pow(2, Math.ceil(Math.log2(MAX_TIME)))
+
 
 const x = (time) => time * PATH_WIDTH / MAX_TIME
 const y = (signal) => Math.abs(signal - SIGNAL_MAX) * PATH_HEIGHT / SIGNAL_MAX
@@ -18,7 +21,8 @@ const input = []
 const output = []
 
 // Подготовили input массив для fft (содержит в себе значения в каждой миллисекунде от 0 до 16384) Ступенчатая функция
-function makeInput() {
+// signal (time value)
+function makeInput(signals, N) {
     const input = new Array(N * 2) //n * 2 = количество сигналов 
 
     for (let i = 0; i < signals.length - 1; i++) {
@@ -42,7 +46,7 @@ function makeInput() {
     //[v1, v2, ..., v16384] --> index = time (period = 1ms)
 }
 
-function getFrequencyGraph(FFToutput) // пики
+function getFrequencyGraph(FFToutput, N) // пики
 {
     const frequencyGraph = new Array(N)
 
@@ -62,14 +66,17 @@ function getFrequencyGraph(FFToutput) // пики
 }
 
 // Получаем частоту
-function getFrequency() {
+function getFrequency(signals, MAX_TIME) {
     //FFT нужно вызывать от степени двойки
+    const N = Math.pow(2, Math.ceil(Math.log2(MAX_TIME)))
+
     const fft = new FFTJS(N * 2)
 
     const output = fft.createComplexArray(N * 2)
 
     // output.length = N * 2 * 2
-    const input = makeInput() //массив сигналов 
+
+    const input = makeInput(signals, N) //массив сигналов 
 
     fft.realTransform(output, input) //output = преобразование фурье массив хуй знает чего, который в 2 раза чем массив сигналов (из-за комплексной части)
     //в output лежит результат преобразования фурье ()
@@ -77,9 +84,9 @@ function getFrequency() {
 
 
 
-    const frequencyGraph = getFrequencyGraph(output)
+    const frequencyGraph = getFrequencyGraph(output, N)
 
-    drawFFTGraph(frequencyGraph)
+    return frequencyGraph
 
 }
 
@@ -102,13 +109,27 @@ function addSignal(signal) {
         })
     }
     // console.log(signals);
-    drawGraph()
+    //drawGraph(signals, 0, 255, MAX_TIME)
 
-    getFrequency()
+    //drawFFTGraph(getFrequency(signals, MAX_TIME))
+   
+
+
+    // test
+    const f = (x) => 150*Math.sin((Math.PI/100)*x) + 150*Math.sin((Math.PI/50)*x) 
+    const time = 1000
+    const testSignals = test(time, f)
+    console.log(testSignals)
+    drawGraph(testSignals, -300, 300, time)
+    
+    drawFFTGraph(getFrequency(testSignals, time))
 }
 
-function drawGraph() {
-    path.setAttribute('d', (signals.length) ? `M ${signals.map((signal) => `${x(signal.time)} ${y(signal.signal)}`).join(' L ')}` : '')
+
+function drawGraph(signals, minSignal, maxSignal, time) {
+    svgSignal.setAttribute('viewBox', `0 0 ${time} ${maxSignal - minSignal}`)
+
+    path.setAttribute('d', (signals.length) ? `M ${signals.map((signal) => `${signal.time} ${maxSignal - signal.signal}`).join(' L ')}` : '')
 }
 
 function drawFFTGraph(frequencyGraph) { //M 1 2 L 5 6
@@ -117,10 +138,42 @@ function drawFFTGraph(frequencyGraph) { //M 1 2 L 5 6
     const maxIntensity = Math.max(...frequencyGraph.map((v) => v.intensity))
     const maxIntensityFrequency = (frequencyGraph.find((v) => v.intensity == maxIntensity)).frequency
 
-    svgFFT.setAttribute('viewBox', `${maxIntensityFrequency - 1} ${-maxIntensity} 2 ${maxIntensity}`)
+    svgFFT.setAttribute('viewBox', `0 ${-maxIntensity} ${maxFrequency} ${maxIntensity}`)
     pathFFT.setAttribute('d', `M ${frequencyGraph.map((v) => `${v.frequency} ${-v.intensity}`).join(" L ")}`)
     console.log(frequencyGraph)
     console.log(maxFrequency, maxIntensity, maxIntensityFrequency)
 }
 // M ['10 15' , '14 13' L ... ' '] -> M P1 L P2 L ... PN L PN+1
+
+
+
+
+
+function test(time, func) {
+    const signals = []
+    for (let i = 0; i < time; i++) {
+        signals.push({
+            signal: func(i), 
+            time: i
+        }) //- x
+    }
+   return signals
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
