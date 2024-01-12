@@ -9,7 +9,7 @@ const signals = []
 
 const SIGNAL_MAX = 1
 let lastTime = undefined
-const MAX_TIME = 15000
+const MAX_TIME = 20000
 
 // N - следующая степень двойки после MAX_TIME
 
@@ -39,8 +39,12 @@ function makeInput(signals, N) {
         input[i] = 0
     }
 
-
-    return input
+//Сглаженная ступенчатая функция
+    return input.map((_, index, arr) => {
+        const array = arr.slice(Math.max(index - 100, 0), index + 101)
+        
+        return array.reduce((prev, curr) => prev + curr, 0) / array.length
+    })
 
 
     //[v1, v2, ..., v16384] --> index = time (period = 1ms)
@@ -93,6 +97,7 @@ function getFrequency(signals, MAX_TIME) {
 function addSignal(signal) {
     const currentTime = Date.now()
     const deltaTime = lastTime != undefined ? currentTime - lastTime : 0
+    console.log(deltaTime)
     lastTime = currentTime
     // signals.push({signal: signal, deltaTime: deltaTime})
 
@@ -108,40 +113,81 @@ function addSignal(signal) {
             signal.time -= timeDif
         })
     }
+    
     // console.log(signals);
-    //drawGraph(signals, 0, 255, MAX_TIME)
+    drawGraph(signals,  0, MAX_TIME, 0, 1)
 
-    //drawFFTGraph(getFrequency(signals, MAX_TIME))
+
+    
+    // frequencyGraph = [(f, i), (f, i), ..., (f, i)]
+    const minFrequency = 60
+    const maxFrequency = 140
+    const frequencyGraph = getFrequency(signals, MAX_TIME)
+    .filter((value) => value.frequency >= minFrequency && value.frequency <= maxFrequency)
+    // .map((_, index, arr) => {
+    //    // Сглаживание графика интенсивности (возможно не нужен здесь, но пригодится для сглаживания ступенчитой функции исходного сигнала)
+    //     const array = arr.slice(Math.max(index - 3, 0), index + 4).map((value) => value.intensity)
+        
+    //     return {
+    //         frequency: arr[index].frequency,
+    //         intensity: array.reduce((prev, curr) => prev + curr, 0) / array.length
+    //     }
+    // })
+    console.log(frequencyGraph)
+    drawFFTGraph(
+        frequencyGraph, 
+        minFrequency, 
+        maxFrequency, 
+        0, 
+        // Высчитываем максимальную intensity только при freq от minFrequency по maxFrequency
+        Math.max(...frequencyGraph
+            .map((value) => value.intensity))
+    )
    
 
 
     // test
-    const f = (x) => 150*Math.sin((Math.PI/100)*x) + 150*Math.sin((Math.PI/50)*x) 
-    const time = 1000
-    const testSignals = test(time, f)
-    console.log(testSignals)
-    drawGraph(testSignals, -300, 300, time)
+    // const f = (x) => 150*Math.sin((Math.PI/100)*x) + 100*Math.sin((Math.PI/50)*x) + 50*Math.sin((Math.PI/1000)*x)
+    // const time = 1000
+    // const testSignals = test(time, f)
+    // console.log(testSignals)
+    // drawGraph(testSignals, -300, 300, time)
     
-    drawFFTGraph(getFrequency(testSignals, time))
+    // drawFFTGraph(getFrequency(testSignals, time))
 }
 
 
-function drawGraph(signals, minSignal, maxSignal, time) {
-    svgSignal.setAttribute('viewBox', `0 0 ${time} ${maxSignal - minSignal}`)
-
-    path.setAttribute('d', (signals.length) ? `M ${signals.map((signal) => `${signal.time} ${maxSignal - signal.signal}`).join(' L ')}` : '')
+function drawGraph(signals, minTime, maxTime, minSignal, maxSignal) {
+    const height = maxSignal - minSignal
+    const width = maxTime - minTime
+    const size = Math.max(height, width) 
+    // Преобразовали систему координат 
+    const y = (y) => size - (((y - minSignal) / height) * size )
+    const x = (x) => ((x - minTime) / width ) * size
+    // Размер окна 
+    svgSignal.setAttribute('viewBox', `0 0 ${size} ${size}`)
+    path.setAttribute('stroke-width', size*0.005)
+    path.setAttribute('d', (signals.length) ? `M ${signals.map((signal) => `${x(signal.time)} ${y(signal.signal)}`).join(' L ')}` : '')
 }
 
-function drawFFTGraph(frequencyGraph) { //M 1 2 L 5 6
+// frequencyGraph = интенсивность частот
+function drawFFTGraph(frequencyGraph, minFrequency, maxFrequency, minIntensity, maxIntensity) { //M 1 2 L 5 6
     //viewBox="0 -4096 8192 8192"
-    const maxFrequency = frequencyGraph[frequencyGraph.length - 1].frequency
-    const maxIntensity = Math.max(...frequencyGraph.map((v) => v.intensity))
-    const maxIntensityFrequency = (frequencyGraph.find((v) => v.intensity == maxIntensity)).frequency
+    const height = maxIntensity - minIntensity
+    const width = maxFrequency - minFrequency
+    const size = Math.max(height, width) 
+    const y = (y) => size - (((y - minIntensity) / height) * size )
+    const x = (x) => ((x - minFrequency) / width ) * size
+    if (maxIntensity == 0){
+        console.log('AAAAAAAAA')
+    }
 
-    svgFFT.setAttribute('viewBox', `0 ${-maxIntensity} ${maxFrequency} ${maxIntensity}`)
-    pathFFT.setAttribute('d', `M ${frequencyGraph.map((v) => `${v.frequency} ${-v.intensity}`).join(" L ")}`)
-    console.log(frequencyGraph)
-    console.log(maxFrequency, maxIntensity, maxIntensityFrequency)
+    // Размер окна 
+    svgFFT.setAttribute('viewBox', `0 0 ${size} ${size}`)
+    pathFFT.setAttribute('stroke-width', size*0.005)
+    pathFFT.setAttribute('d', `M ${frequencyGraph
+        .map((v) => `${x(v.frequency)} ${y(v.intensity)}`).join(" L ")}`)
+
 }
 // M ['10 15' , '14 13' L ... ' '] -> M P1 L P2 L ... PN L PN+1
 
@@ -149,16 +195,16 @@ function drawFFTGraph(frequencyGraph) { //M 1 2 L 5 6
 
 
 
-function test(time, func) {
-    const signals = []
-    for (let i = 0; i < time; i++) {
-        signals.push({
-            signal: func(i), 
-            time: i
-        }) //- x
-    }
-   return signals
-}
+// function test(time, func) {
+//     const signals = []
+//     for (let i = 0; i < time; i++) {
+//         signals.push({
+//             signal: func(i), 
+//             time: i
+//         }) //- x
+//     }
+//    return signals
+// }
 
 
 
