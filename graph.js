@@ -16,6 +16,10 @@ const MAX_TIME = 15000
 // N - следующая степень двойки после MAX_TIME
 
 
+// КОЛ-ВО КОЛЕБАНИЙ В СЕКУНДУ 
+
+const MIN_FREQUENCY =  60 / 60
+const MAX_FREQUENCY = 130 / 60
 const input = []
 const output = []
 
@@ -24,30 +28,19 @@ const output = []
 function makeInput(signals, N) {
     const input = new Array(N * 2) //n * 2 = количество сигналов 
 
-    for (let i = 0; i < signals.length - 1; i++) {
-        const currentTime = i * PERIOD_TIME
-        const nextTime = (i + 1) * PERIOD_TIME
-        for (let j = currentTime; j < nextTime; j++) {
-            input[j] = signals[i]
-        }
+    for (let i = 0; i < signals.length; i++) {
+            input[i] = signals[i]
     }
 
-    for (let i = (signals.length - 1) * PERIOD_TIME; i < N * 2; i++) {
+    for (let i = signals.length; i < N * 2; i++) {
         input[i] = 0
     }
 
-//Сглаженная ступенчатая функция
-    return input.map((_, index, arr) => {
-        const array = arr.slice(Math.max(index - 100, 0), index + 101)
-        
-        return array.reduce((prev, curr) => prev + curr, 0) / array.length
-    })
-
-
+    return input
     //[v1, v2, ..., v16384] --> index = time (period = 1ms)
 }
 
-function getFrequencyGraph(FFToutput, N) // пики
+function getFrequencyGraph(FFToutput, N, length) // пики
 {
     const frequencyGraph = new Array(N)
 
@@ -59,8 +52,8 @@ function getFrequencyGraph(FFToutput, N) // пики
         //Это интенсивность (на сколько высоко пика)
         //
         frequencyGraph[i] = {
-            intensity: (Math.pow(FFToutput[2 * i], 2) + Math.pow(FFToutput[2 * i + 1], 2)) / Math.pow(MAX_TIME, 2), // 
-            frequency: i / (2 * N * 0.001)
+            intensity: (Math.pow(FFToutput[2 * i], 2) + Math.pow(FFToutput[2 * i + 1], 2)) / Math.pow(length, 2), // 
+            frequency: i / (2 * N * 0.05)
             //0.001 - период между значениями в графике
             //количество ударов в секунду  (частота)
         }
@@ -73,7 +66,7 @@ function getFrequencyGraph(FFToutput, N) // пики
 // Получаем частоту
 function getFrequency(signals, MAX_TIME) {
     //FFT нужно вызывать от степени двойки
-    const N = Math.pow(2, Math.ceil(Math.log2(MAX_TIME)))
+    const N = Math.pow(2, Math.ceil(Math.log2(signals.length)))
 
     const fft = new FFTJS(N * 2)
 
@@ -89,7 +82,7 @@ function getFrequency(signals, MAX_TIME) {
 
 
 
-    const frequencyGraph = getFrequencyGraph(output, N)
+    const frequencyGraph = getFrequencyGraph(output, N, signals.length)
 
     return frequencyGraph
 
@@ -103,38 +96,38 @@ async function addSignal(signal) {
         signals.shift()
     }
     // console.log(signals);
-    // drawGraph(signals,  0, MAX_TIME, 0, 1)
+    drawGraph(signals,  0, MAX_TIME, 0, 1)
 
 
     
     // frequencyGraph = [(f, i), (f, i), ..., (f, i)]
-    const minFrequency = 60 / 60 
-    // КОЛ-ВО КОЛЕБАНИЙ В СЕКУНДУ 
-    const maxFrequency = 130 / 60
-    // const frequencyGraph = getFrequency(signals, MAX_TIME)
-    // .filter((value) => value.frequency >= minFrequency && value.frequency <= maxFrequency)
+    
+    const frequencyGraph = getFrequency(signals, MAX_TIME)
+    .filter((value) => value.frequency >= MIN_FREQUENCY && value.frequency <= MAX_FREQUENCY)
 
-    // console.log(frequencyGraph)
-    // drawFFTGraph(
-    //     frequencyGraph, 
-    //     minFrequency, 
-    //     maxFrequency, 
-    //     0, //MIN INTENSITY
-    //     // Высчитываем максимальную intensity только при freq от minFrequency по maxFrequency
-    //     Math.max(...frequencyGraph
-    //         .map((value) => value.intensity))
-    // )
+    console.log(frequencyGraph)
+    drawFFTGraph(
+        frequencyGraph, 
+        MIN_FREQUENCY, 
+        MAX_FREQUENCY, 
+        0, //MIN INTENSITY
+        // Высчитываем максимальную intensity только при freq от minFrequency по maxFrequency
+        Math.max(...frequencyGraph
+            .map((value) => value.intensity))
+    )
    
 
 
-    // test 150*Math.sin((Math.PI/100)*x) + 100*Math.sin((Math.PI/50)*x) + 
-    const f = (x) => 150*Math.sin((Math.PI/250)*x)
-    const time = 15000
-    const testSignals = test(time, f)
-    console.log(testSignals)
-    drawGraph(testSignals,0 , time, -300, 300)
-    const frequencyGraph = getFrequency(testSignals, time).filter((value) => value.frequency >= minFrequency && value.frequency <= maxFrequency)
-    drawFFTGraph(frequencyGraph, minFrequency, maxFrequency, 0, Math.max(...frequencyGraph.map((value) => value.intensity)))
+    // test 
+    
+    
+    // const f = (x) => 150*Math.sin((Math.PI/250)*x)
+    // const time = 15000
+    // const testSignals = test(time, f)
+    // console.log(testSignals)
+    // drawGraph(testSignals,0 , time, -300, 300)
+    // const frequencyGraph = getFrequency(testSignals, time).filter((value) => value.frequency >= MIN_FREQUENCY && value.frequency <= MAX_FREQUENCY)
+    // drawFFTGraph(frequencyGraph, MIN_FREQUENCY, MAX_FREQUENCY, 0, Math.max(...frequencyGraph.map((value) => value.intensity)))
 }
 // 
 
