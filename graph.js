@@ -9,13 +9,12 @@ const signals = []
 
 const SIGNAL_MAX = 1
 let lastTime = undefined
-const MAX_TIME = 20000
+//МС
+const PERIOD_TIME = 50
+const MAX_TIME = 15000
 
 // N - следующая степень двойки после MAX_TIME
 
-
-const x = (time) => time * PATH_WIDTH / MAX_TIME
-const y = (signal) => Math.abs(signal - SIGNAL_MAX) * PATH_HEIGHT / SIGNAL_MAX
 
 const input = []
 const output = []
@@ -26,16 +25,14 @@ function makeInput(signals, N) {
     const input = new Array(N * 2) //n * 2 = количество сигналов 
 
     for (let i = 0; i < signals.length - 1; i++) {
-        const currentSignal = signals[i]
-        const currentTime = currentSignal.time
-        const nextSignal = signals[i + 1]
-        const nextTime = nextSignal.time
+        const currentTime = i * PERIOD_TIME
+        const nextTime = (i + 1) * PERIOD_TIME
         for (let j = currentTime; j < nextTime; j++) {
-            input[j] = currentSignal.signal
+            input[j] = signals[i]
         }
     }
 
-    for (let i = signals[signals.length - 1].time; i < N * 2; i++) {
+    for (let i = (signals.length - 1) * PERIOD_TIME; i < N * 2; i++) {
         input[i] = 0
     }
 
@@ -64,10 +61,14 @@ function getFrequencyGraph(FFToutput, N) // пики
         frequencyGraph[i] = {
             intensity: (Math.pow(FFToutput[2 * i], 2) + Math.pow(FFToutput[2 * i + 1], 2)) / Math.pow(MAX_TIME, 2), // 
             frequency: i / (2 * N * 0.001)
+            //0.001 - период между значениями в графике
+            //количество ударов в секунду  (частота)
         }
     }
     return frequencyGraph //возвращаем массив объектов
 }
+
+// i/(2 * N)
 
 // Получаем частоту
 function getFrequency(signals, MAX_TIME) {
@@ -93,69 +94,49 @@ function getFrequency(signals, MAX_TIME) {
     return frequencyGraph
 
 }
-
-function addSignal(signal) {
-    const currentTime = Date.now()
-    const deltaTime = lastTime != undefined ? currentTime - lastTime : 0
-    console.log(deltaTime)
-    lastTime = currentTime
-    // signals.push({signal: signal, deltaTime: deltaTime})
-
-    signals.push({
-        signal: signal, // -y
-        time: signals.length ? deltaTime + signals[signals.length - 1].time : 0
-    }) //- x
-
-    while (signals[signals.length - 1].time > MAX_TIME) {
+//частота - количество ударов в секунду
+//чсс - количество ударов в минуту
+async function addSignal(signal) {
+    signals.push(signal) 
+    while ((signals.length - 1) * PERIOD_TIME > MAX_TIME) {
+        //Убрать 1ый сигнал
         signals.shift()
-        const timeDif = signals[0].time
-        signals.forEach((signal) => {
-            signal.time -= timeDif
-        })
     }
-    
     // console.log(signals);
-    drawGraph(signals,  0, MAX_TIME, 0, 1)
+    // drawGraph(signals,  0, MAX_TIME, 0, 1)
 
 
     
     // frequencyGraph = [(f, i), (f, i), ..., (f, i)]
-    const minFrequency = 60
-    const maxFrequency = 140
-    const frequencyGraph = getFrequency(signals, MAX_TIME)
-    .filter((value) => value.frequency >= minFrequency && value.frequency <= maxFrequency)
-    // .map((_, index, arr) => {
-    //    // Сглаживание графика интенсивности (возможно не нужен здесь, но пригодится для сглаживания ступенчитой функции исходного сигнала)
-    //     const array = arr.slice(Math.max(index - 3, 0), index + 4).map((value) => value.intensity)
-        
-    //     return {
-    //         frequency: arr[index].frequency,
-    //         intensity: array.reduce((prev, curr) => prev + curr, 0) / array.length
-    //     }
-    // })
-    console.log(frequencyGraph)
-    drawFFTGraph(
-        frequencyGraph, 
-        minFrequency, 
-        maxFrequency, 
-        0, 
-        // Высчитываем максимальную intensity только при freq от minFrequency по maxFrequency
-        Math.max(...frequencyGraph
-            .map((value) => value.intensity))
-    )
+    const minFrequency = 60 / 60 
+    // КОЛ-ВО КОЛЕБАНИЙ В СЕКУНДУ 
+    const maxFrequency = 130 / 60
+    // const frequencyGraph = getFrequency(signals, MAX_TIME)
+    // .filter((value) => value.frequency >= minFrequency && value.frequency <= maxFrequency)
+
+    // console.log(frequencyGraph)
+    // drawFFTGraph(
+    //     frequencyGraph, 
+    //     minFrequency, 
+    //     maxFrequency, 
+    //     0, //MIN INTENSITY
+    //     // Высчитываем максимальную intensity только при freq от minFrequency по maxFrequency
+    //     Math.max(...frequencyGraph
+    //         .map((value) => value.intensity))
+    // )
    
 
 
-    // test
-    // const f = (x) => 150*Math.sin((Math.PI/100)*x) + 100*Math.sin((Math.PI/50)*x) + 50*Math.sin((Math.PI/1000)*x)
-    // const time = 1000
-    // const testSignals = test(time, f)
-    // console.log(testSignals)
-    // drawGraph(testSignals, -300, 300, time)
-    
-    // drawFFTGraph(getFrequency(testSignals, time))
+    // test 150*Math.sin((Math.PI/100)*x) + 100*Math.sin((Math.PI/50)*x) + 
+    const f = (x) => 150*Math.sin((Math.PI/250)*x)
+    const time = 15000
+    const testSignals = test(time, f)
+    console.log(testSignals)
+    drawGraph(testSignals,0 , time, -300, 300)
+    const frequencyGraph = getFrequency(testSignals, time).filter((value) => value.frequency >= minFrequency && value.frequency <= maxFrequency)
+    drawFFTGraph(frequencyGraph, minFrequency, maxFrequency, 0, Math.max(...frequencyGraph.map((value) => value.intensity)))
 }
-
+// 
 
 function drawGraph(signals, minTime, maxTime, minSignal, maxSignal) {
     const height = maxSignal - minSignal
@@ -167,7 +148,7 @@ function drawGraph(signals, minTime, maxTime, minSignal, maxSignal) {
     // Размер окна 
     svgSignal.setAttribute('viewBox', `0 0 ${size} ${size}`)
     path.setAttribute('stroke-width', size*0.005)
-    path.setAttribute('d', (signals.length) ? `M ${signals.map((signal) => `${x(signal.time)} ${y(signal.signal)}`).join(' L ')}` : '')
+    path.setAttribute('d', (signals.length) ? `M ${signals.map((signal, index) => `${x(index * PERIOD_TIME)} ${y(signal)}`).join(' L ')}` : '')
 }
 
 // frequencyGraph = интенсивность частот
@@ -195,16 +176,13 @@ function drawFFTGraph(frequencyGraph, minFrequency, maxFrequency, minIntensity, 
 
 
 
-// function test(time, func) {
-//     const signals = []
-//     for (let i = 0; i < time; i++) {
-//         signals.push({
-//             signal: func(i), 
-//             time: i
-//         }) //- x
-//     }
-//    return signals
-// }
+function test(time, func) {
+    const signals = []
+    for (let i = 0; i < time; i+= PERIOD_TIME) {
+        signals.push(func(i)) //- x
+    }
+   return signals
+}
 
 
 

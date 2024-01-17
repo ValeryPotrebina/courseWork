@@ -24,9 +24,9 @@ function startVideo() {
 }
 
 video.addEventListener('play', () => {
-    setTimeout(() => {
+    setInterval(() => {
         detectFace()
-    })
+    }, PERIOD_TIME)
 
 })
 
@@ -40,7 +40,6 @@ async function detectFace() {
         .withFaceLandmarks()
         .withFaceExpressions()
     if (!detection) {
-        setTimeout(() => detectFace())
         context.clearRect(0, 0, canvas.width, canvas.height)
         return
     }
@@ -59,7 +58,7 @@ async function detectFace() {
     faceapi.draw.drawDetections(canvas, resizedDetection)
     faceapi.draw.drawFaceLandmarks(canvas, resizedDetection)
     // faceapi.draw.drawFaceExpressions(canvas, resizedDetection)
-    setTimeout(() => detectFace())
+
 }
 
 
