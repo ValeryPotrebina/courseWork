@@ -51,5 +51,5 @@ function makeEdges(points){
 }
 
 function makeSignal(color){
-    return color[0] / 255
+    return color[0] * 0.8 + color[1] * 0.05 + color[2] * 0.15 
 }

@@ -18,11 +18,14 @@ const MAX_TIME = 15000
 
 // КОЛ-ВО КОЛЕБАНИЙ В СЕКУНДУ 
 
-const MIN_FREQUENCY =  60 / 60
-const MAX_FREQUENCY = 130 / 60
+const MIN_FREQUENCY =  20 / 60
+const MAX_FREQUENCY = 100 / 60
 const input = []
 const output = []
 
+
+
+const SMOOTH_SIGNAL = 5
 // Подготовили input массив для fft (содержит в себе значения в каждой миллисекунде от 0 до 16384) Ступенчатая функция
 // signal (time value)
 function makeInput(signals, N) {
@@ -36,8 +39,17 @@ function makeInput(signals, N) {
         input[i] = 0
     }
 
-    return input
+    return input//.map((_, index, arr) => {
+        //const array = arr.slice(Math.max(index - smoothing_window, 0), index + smoothing_window + 1)
+        
+        //return array.reduce((prev, curr) => prev + curr, 0) / array.length})
     //[v1, v2, ..., v16384] --> index = time (period = 1ms)
+}
+
+function smoothSignal(signals, smoothing_window) {
+    return signals.map((_, index, arr) => {
+        const array = arr.slice(Math.max(index - smoothing_window, 0), index + smoothing_window + 1)
+        return array.reduce((prev, curr) => prev + curr, 0) / array.length})
 }
 
 function getFrequencyGraph(FFToutput, N, length) // пики
@@ -60,6 +72,7 @@ function getFrequencyGraph(FFToutput, N, length) // пики
     }
     return frequencyGraph //возвращаем массив объектов
 }
+
 
 // i/(2 * N)
 
@@ -95,8 +108,12 @@ async function addSignal(signal) {
         //Убрать 1ый сигнал
         signals.shift()
     }
+    const smoothSignals = smoothSignal(normalizeSignal(signals), SMOOTH_SIGNAL)
     // console.log(signals);
-    drawGraph(signals,  0, MAX_TIME, 0, 1)
+    const minSignal = 0;
+    const maxSignal = 1;
+
+    drawGraph(smoothSignals,  0, MAX_TIME, minSignal, maxSignal)
 
 
     
@@ -117,7 +134,11 @@ async function addSignal(signal) {
     )
    
 
-
+function normalizeSignal(signals) {
+    const minSignal = Math.min(...signals)
+    const maxSignal = Math.max(...signals)
+    return signals.map((signal) => (signal - minSignal) / (maxSignal - minSignal))
+}
     // test 
     
     
