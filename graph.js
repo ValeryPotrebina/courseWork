@@ -11,7 +11,7 @@ const SIGNAL_MAX = 1
 let lastTime = undefined
 //МС
 const PERIOD_TIME = 50
-const MAX_TIME = 15000
+const MAX_TIME = 10000
 
 // N - следующая степень двойки после MAX_TIME
 
@@ -65,7 +65,7 @@ function getFrequencyGraph(FFToutput, N, length) // пики
         //
         frequencyGraph[i] = {
             intensity: (Math.pow(FFToutput[2 * i], 2) + Math.pow(FFToutput[2 * i + 1], 2)) / Math.pow(length, 2), // 
-            frequency: i / (2 * N * 0.05)
+            frequency: i / (2 * N * (PERIOD_TIME / 1000))
             //0.001 - период между значениями в графике
             //количество ударов в секунду  (частота)
         }
@@ -108,7 +108,6 @@ const signalQueue = []
 async function addSignal(signal, uuid) {
     await waitForCondition(() => signalQueue[0] == uuid)
     signalQueue.shift()
-    console.log('SHIFTED - ' + uuid)
     signals.push(signal) 
     while ((signals.length - 1) * PERIOD_TIME > MAX_TIME) {
         //Убрать 1ый сигнал

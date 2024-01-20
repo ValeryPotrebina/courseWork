@@ -50,6 +50,6 @@ function makeEdges(points){
     })
 }
 
-function makeSignal(color){
-    return color[0] * 0.8 + color[1] * 0.05 + color[2] * 0.15 
+function makeSignal(color){ //[[r, g, b], [r, g, b], [] ...] => [num, num, ..., num] => avrNum / length
+    return color.map(color => color[0] * 0.8 + color[1] * 0.05 + color[2] * 0.15).reduce((prev, cur) => prev + cur, 0) / color.length
 }

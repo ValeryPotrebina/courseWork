@@ -2,6 +2,8 @@ const video = document.getElementById('video')
 const canvas = document.getElementById('canvas')
 const context = canvas.getContext("2d")
 
+const AVERAGE_SQUEARE = 15
+
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
     faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
@@ -24,11 +26,16 @@ function startVideo() {
 }
 
 video.addEventListener('play', () => {
+    const k = video.videoWidth / video.videoHeight
+    video.width = 800;
+    video.height = Math.round(video.width / k);
+
+    canvas.width = video.width;
+    canvas.height = video.height;
+
     setInterval(() => {
         const uuid = window.crypto.randomUUID().toString()
         signalQueue.push(uuid)
-        console.log('PUSHED - ' + uuid)
-        console.log(signalQueue)
         detectFace(uuid)
     }, PERIOD_TIME)
 
@@ -36,6 +43,7 @@ video.addEventListener('play', () => {
 
 
 
+let squareCoord = []
 
 async function detectFace(uuid) {
     const imgData = getFrame()
@@ -47,19 +55,32 @@ async function detectFace(uuid) {
         context.clearRect(0, 0, canvas.width, canvas.height)
         await waitForCondition(() => signalQueue[0] == uuid)
         signalQueue.shift()
-        console.log('SHIFTED - ' + uuid)
         return
     }
     const displaySize = faceapi.matchDimensions(canvas, video)
     const resizedDetection = faceapi.resizeResults(detection, displaySize)
     context.clearRect(0, 0, canvas.width, canvas.height)
     const area = getPieceOfFace(resizedDetection, canvas)
-    area.forEach((p) => drawPiecesOfFace(p, canvas))
+    
+    squareCoord = [...squareCoord, area].slice(Math.max(squareCoord.length - AVERAGE_SQUEARE, 0))
+    // Проходимся по squareCoord и складываем координаты x и y и возвращаем их среднее арифметическое 
+    const averagedArea = squareCoord.reduce((prevObj, currentObj) => prevObj.map((cheek, i) => cheek.map((point, j) => ({
+        _x: point._x + currentObj[i][j]._x,
+        _y: point._y + currentObj[i][j]._y})))).map((cheek) => cheek.map(point => ({
+            _x: point._x / squareCoord.length,
+            _y: point._y / squareCoord.length
+        })))
+        
+    
+    // obj1 = [[x, y], [x, y], [x, y], [x, y]], [[x, y], [x, y], [x, y], [x, y]], obj2, obj3
+    averagedArea.forEach((p) => drawPiecesOfFace(p, canvas))
 
     //---------------------------
-    const color = getAreaColor(imgData, area[0])
+    const color1 = getAreaColor(imgData, averagedArea[0])
+    const color2 = getAreaColor(imgData, averagedArea[1])
     // console.log(makeSignal(color))
-    addSignal(makeSignal(color), uuid)
+    addSignal(makeSignal([color1, color2]), uuid)
+    
 
     //-------------------------
     faceapi.draw.drawDetections(canvas, resizedDetection)
