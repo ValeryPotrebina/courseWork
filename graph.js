@@ -100,9 +100,15 @@ function getFrequency(signals, MAX_TIME) {
     return frequencyGraph
 
 }
+
+const signalQueue = []
+
 //частота - количество ударов в секунду
 //чсс - количество ударов в минуту
-async function addSignal(signal) {
+async function addSignal(signal, uuid) {
+    await waitForCondition(() => signalQueue[0] == uuid)
+    signalQueue.shift()
+    console.log('SHIFTED - ' + uuid)
     signals.push(signal) 
     while ((signals.length - 1) * PERIOD_TIME > MAX_TIME) {
         //Убрать 1ый сигнал
@@ -155,6 +161,9 @@ function normalizeSignal(signals) {
 function drawGraph(signals, minTime, maxTime, minSignal, maxSignal) {
     const height = maxSignal - minSignal
     const width = maxTime - minTime
+    if (height == 0 || width == 0){
+        return;
+    }
     const size = Math.max(height, width) 
     // Преобразовали систему координат 
     const y = (y) => size - (((y - minSignal) / height) * size )
@@ -170,6 +179,9 @@ function drawFFTGraph(frequencyGraph, minFrequency, maxFrequency, minIntensity, 
     //viewBox="0 -4096 8192 8192"
     const height = maxIntensity - minIntensity
     const width = maxFrequency - minFrequency
+    if (height == 0 || width == 0){
+        return;
+    }
     const size = Math.max(height, width) 
     const y = (y) => size - (((y - minIntensity) / height) * size )
     const x = (x) => ((x - minFrequency) / width ) * size
@@ -178,10 +190,11 @@ function drawFFTGraph(frequencyGraph, minFrequency, maxFrequency, minIntensity, 
     }
 
     // Размер окна 
+    if (frequencyGraph.length )
     svgFFT.setAttribute('viewBox', `0 0 ${size} ${size}`)
     pathFFT.setAttribute('stroke-width', size*0.005)
-    pathFFT.setAttribute('d', `M ${frequencyGraph
-        .map((v) => `${x(v.frequency)} ${y(v.intensity)}`).join(" L ")}`)
+    pathFFT.setAttribute('d', (frequencyGraph.length) ? `M ${frequencyGraph
+        .map((v) => `${x(v.frequency)} ${y(v.intensity)}`).join(" L ")}` : '')
 
 }
 // M ['10 15' , '14 13' L ... ' '] -> M P1 L P2 L ... PN L PN+1
@@ -203,15 +216,20 @@ function test(time, func) {
 
 
 
+/** 
+ * функция ожидания выполнения условия
+ * 
+ * @param {() => boolean} condition функция, которая возвращает условие
+ */
 
-
-
-
-
-
-
-
-
-
-
-
+async function waitForCondition(condition) {
+    // Разрешатель promise
+    const poll = resolve => {
+        if (condition()){
+            resolve()
+        } else {
+            setTimeout(_ => poll(resolve), 10)
+        }
+    }
+    return new Promise(poll);
+}

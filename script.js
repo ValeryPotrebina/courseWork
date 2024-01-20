@@ -25,7 +25,11 @@ function startVideo() {
 
 video.addEventListener('play', () => {
     setInterval(() => {
-        detectFace()
+        const uuid = window.crypto.randomUUID().toString()
+        signalQueue.push(uuid)
+        console.log('PUSHED - ' + uuid)
+        console.log(signalQueue)
+        detectFace(uuid)
     }, PERIOD_TIME)
 
 })
@@ -33,7 +37,7 @@ video.addEventListener('play', () => {
 
 
 
-async function detectFace() {
+async function detectFace(uuid) {
     const imgData = getFrame()
     const detection = await faceapi.detectSingleFace(video,
         new faceapi.TinyFaceDetectorOptions())
@@ -41,6 +45,9 @@ async function detectFace() {
         .withFaceExpressions()
     if (!detection) {
         context.clearRect(0, 0, canvas.width, canvas.height)
+        await waitForCondition(() => signalQueue[0] == uuid)
+        signalQueue.shift()
+        console.log('SHIFTED - ' + uuid)
         return
     }
     const displaySize = faceapi.matchDimensions(canvas, video)
@@ -52,13 +59,12 @@ async function detectFace() {
     //---------------------------
     const color = getAreaColor(imgData, area[0])
     // console.log(makeSignal(color))
-    addSignal(makeSignal(color))
+    addSignal(makeSignal(color), uuid)
 
     //-------------------------
     faceapi.draw.drawDetections(canvas, resizedDetection)
     faceapi.draw.drawFaceLandmarks(canvas, resizedDetection)
     // faceapi.draw.drawFaceExpressions(canvas, resizedDetection)
-
 }
 
 

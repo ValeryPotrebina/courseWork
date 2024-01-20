@@ -16,20 +16,22 @@
 
     <body>
         <div class="container">
-            <video id="video" width="800" height="600" autoplay muted></video>   
+            <video class="video" id="video" width="800" height="600" autoplay muted></video>   
             <canvas id="canvas"></canvas> 
         </div>
         
-        <svg id="signal" width="400" height="400" preserveAspectRatio="none">
-            <path id="graph" d=""></path>
-        </svg>
-
-        <svg id="svgFFT" width="400" height="400" preserveAspectRatio="none">
-            <path id="graphFFT" d=""></path>
-        </svg>
-
-         <!--  -->
-        <canvas class="testCanvas" id="testCanvas" width="340" height="340"></canvas>
-        <!--  -->
+        <div class="graphs">
+            <div class="kk">
+                <svg id="signal" class="signal__graph" preserveAspectRatio="none">
+                    <path class="signal__line" id="graph" d=""></path>
+                </svg>
+            </div>
+            <div class="kk">
+                <svg id="svgFFT" class="signal__graph signal__graph--fft" preserveAspectRatio="none">
+                    <path class="fft__signal__line" id="graphFFT" d=""></path>
+                </svg>
+            </div>    
+        </div>
+    
     </body>
 </html>

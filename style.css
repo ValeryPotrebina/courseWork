@@ -4,7 +4,7 @@ body {
     width: 100vw;
     height: 100vh;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
 }
 
@@ -16,15 +16,29 @@ canvas {
     position: absolute;
     inset: 0;
 }
-path {
+/* path {
     stroke: black;
     fill: none;
+} */
+
+.graphs {
+    display: flex;
+    gap: 10px;
 }
-svg {
+.signal__graph {
     border: 2px solid black;
+    display: block;
+    width: 400px;
+    height: 400px;
+    background-color: rgb(243, 243, 247);
 }
-.testCanvas {
-    /* border: 2px solid black; */
-    left: 10%;
-    top: 90%;
+
+.signal__line {
+    stroke: rgb(255, 0, 0);
+    fill: none;
+}
+
+.fft__signal__line {
+    stroke: rgb(0, 255, 13);
+    fill: none;
 }
