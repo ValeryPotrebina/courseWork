@@ -8,6 +8,7 @@
     <title>Face datection</title>
     <script defer src="face-api.min.js"></script>
     <script defer src="fft.js"></script>
+    <script defer src="config.js"></script>
     <script defer src="color.js"></script>
     <script defer src="graph.js"></script>
     <!-- <script defer src="test.js"></script> -->
@@ -19,6 +20,10 @@
     <div class="container">
         <video class="video" id="video" autoplay muted></video>
         <canvas id="canvas"></canvas>
+
+        <div id="pulse" class="pulse">
+            Heart rate
+        </div>
     </div>
 
     <div class="graphs">
@@ -32,7 +37,74 @@
                 <path class="fft__signal__line" id="graphFFT" d=""></path>
             </svg>
         </div>
+
+        <form id="settings">
+            <div class="option__row">
+                <div class="option">
+                    <label for="clr_r">R:</label>
+                    <input name="clr_r" type="number" step="any" id="clr_r">
+                </div>
+        
+                <div class="option">
+                    <label for="clr_g">G: </label>
+                    <input name="clr_g" type="number" step="any" id="clr_g">
+                </div>
+        
+                <div class="option">
+                    <label for="clr_b">B: </label>
+                    <input name="clr_b" type="number" step="any"  id="clr_b">
+                </div>
+            </div>
+            
+    
+            <div class="option">
+                <label for="resampling">Resampling: </label>  
+                <input name="resampling" type="checkbox" id="resampling">
+                <input name="resampling_rate" type="number" step="any" id="resampling_rate">
+    
+            </div>
+    
+            <div class="option">
+                <label for="smoothing">Smoothing:</label>
+                <input name="smoothing" type="checkbox" id="smoothing">
+                <input name="smoothing_window" type="number" step="any" id="smoothing_window">
+            </div>
+    
+
+            <!-- Пока не работает -->
+            <div class="option">
+                <label for="centralize">Centralize: (not working yet)</label>
+                <input name="centralize" type="checkbox" id="centralize">
+            </div>
+            <!-- --- -->
+
+            <div class="option">
+                <label for="pulse_window">Pulse_window:</label>
+                <input name="pulse_window" type="number" step="1" id="pulse_window">
+            </div>
+    
+            <div class="option__row">
+                Frequency
+                <div class="option">
+                    <label for="min_frequency">Min: </label>  
+                    <input name="min_frequency" type="number" step="10" id="min_frequency">
+                </div>
+                <div class="option">
+                    <label for="max_frequency">Max: </label>  
+                    <input name="max_frequency" type="number" step="10" id="max_frequency">
+                </div>
+            </div>
+
+            <button class="submit__button" type="submit">Save</button>
+        </form>
+
+
     </div>
+    <button id="debug__button" class="debug__button">
+        import
+    </button>
+
+    
 
 </body>
 

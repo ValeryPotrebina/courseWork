@@ -62,7 +62,7 @@ async function detectFace(uuid) {
     context.clearRect(0, 0, canvas.width, canvas.height)
     const area = getPieceOfFace(resizedDetection, canvas)
     
-    squareCoord = [...squareCoord, area].slice(Math.max(squareCoord.length - AVERAGE_SQUEARE, 0))
+    squareCoord = [...squareCoord, area].slice(-AVERAGE_SQUEARE)
     // Проходимся по squareCoord и складываем координаты x и y и возвращаем их среднее арифметическое 
     const averagedArea = squareCoord.reduce((prevObj, currentObj) => prevObj.map((cheek, i) => cheek.map((point, j) => ({
         _x: point._x + currentObj[i][j]._x,

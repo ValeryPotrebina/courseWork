@@ -42,3 +42,60 @@ canvas {
     stroke: rgb(0, 255, 13);
     fill: none;
 }
+
+
+/*  */
+form {
+    font-size: 18px;
+    padding: 8px;
+    border: 2px solid black;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 7px;
+}
+
+.option__row {
+
+    display: flex;
+    gap: 10px;
+}
+
+.option label {
+    margin-right: auto;
+}
+.option input {
+    margin-left: 5px;
+}
+
+.option input[type="number"] {
+    width: 20px;
+}
+
+.option input[type="number"]::-webkit-inner-spin-button {
+    display: none;
+}
+
+.debug__button {
+    font-size: 20px;
+    margin-top: 10px;
+    background-color: rgb(238, 238, 232);
+    /* text-decoration: dashed;  */
+}
+
+.submit__button {
+    font-size: 15px;
+}
+
+/* Pulse */
+
+.pulse {
+    position: absolute;
+    top: 0;
+    right: 0;
+    /* border: 1px dashed red; */
+    color: red;
+    font-size: 40px;
+}
