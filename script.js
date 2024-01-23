@@ -73,7 +73,7 @@ async function detectFace(uuid) {
         
     
     // obj1 = [[x, y], [x, y], [x, y], [x, y]], [[x, y], [x, y], [x, y], [x, y]], obj2, obj3
-    averagedArea.forEach((p) => drawPiecesOfFace(p, canvas))
+    // averagedArea.forEach((p) => drawPiecesOfFace(p, canvas))
 
     //---------------------------
     const color1 = getAreaColor(imgData, averagedArea[0])

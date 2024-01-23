@@ -18,7 +18,7 @@ const SIGNAL_MAX = 1
 const FFT_COUNT = 15000
 //МС
 const PERIOD_TIME = 50
-const MAX_TIME = 5000
+const MAX_TIME = 10000
 
 // N - следующая степень двойки после MAX_TIME
 
@@ -136,13 +136,12 @@ async function addSignal(signal, uuid) {
         signals.shift()
     }
     let processedSignals = signals
+    processedSignals = normalizeSignal(deleteTrend(processedSignals))
+    processedSignals = centralize(processedSignals)
+    const minSignal = Math.min(...processedSignals)
+    const maxSignal = Math.max(...processedSignals)
     if (config.resampling) processedSignals = resampling(processedSignals)
     if (config.smoothing) processedSignals = smoothSignal(processedSignals, config.smoothing_window)
-    processedSignals = normalizeSignal(deleteTrend(processedSignals))
-    
-    processedSignals = centralize(processedSignals)
-    const minSignal = 0;
-    const maxSignal = 1;
 
     drawGraph(processedSignals, 0, MAX_TIME, minSignal, maxSignal)
 
