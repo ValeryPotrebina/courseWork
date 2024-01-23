@@ -96,18 +96,11 @@ function getPieceOfFace(detection, canvas) {
     const downLine = makePerpendicularLine(noseLine[1], noseLine)
     const left_brow = [detection.landmarks.getLeftEyeBrow()[1], detection.landmarks.getLeftEyeBrow()[3]]
     const right_brow = [detection.landmarks.getRightEyeBrow()[1], detection.landmarks.getRightEyeBrow()[3]]
-
     //Левая щека
     const leftCheekPoints = [
         ...left_brow.map((point) => pointProjection(point, upLine)),
         ...left_brow.map((point) => pointProjection(point, downLine)).reverse()
     ]
-    // pointProjection(left_brow[0], upJawLine)
-    // pointProjection(left_brow[0], downJawLine)
-
-    // pointProjection(left_brow[1], upJawLine)
-    // pointProjection(left_brow[1], downJawLine)
-
     //Правая щека
     const rightCheekPoints = [
         ...right_brow.map((point) => pointProjection(point, upLine)),
@@ -115,7 +108,6 @@ function getPieceOfFace(detection, canvas) {
     ]
 
     return [leftCheekPoints, rightCheekPoints]
-
 }
 
 function drawPiecesOfFace(points, canvas) {
@@ -141,12 +133,6 @@ function pointProjection(point, line) {
         _y: point._y + normalVector[1] * k2
     }
 }
-
-// console.log(pointProjection({ _x: 0, _y: 1 }, [{ _x: -1, _y: 0 }, { _x: 1, _y: 0 }]));
-// console.log(pointProjection({ _x: 0, _y: 1 }, [{ _x: 1, _y: 0 }, { _x: 1, _y: 2 }]));
-// console.log(pointProjection({ _x: 0, _y: 1 }, [{ _x: 0, _y: 0 }, { _x: 1, _y: 1 }]));
-
-
 // (point[0]._x + normalVector[0] * k2 - line[0]._x) * unitVector[1]  = (point[0]._y + normalVector[1] * k2 - line[0]._y)* unitVector[0]
 
 // point[0]._x * unitVector[1] + normalVector[0] * k2 * unitVector[1]  - line[0]._x * unitVector[1] = point[0]._y * unitVector[0] + normalVector[1] * k2 * unitVector[0] -  line[0]._y * unitVector[0]
@@ -177,12 +163,5 @@ function getFrame() {
     canvasForFrame.remove()
     return PixelsOfOneFrame;
 }
-
-
-
-// TODO: 1. брать кадры
-// TODO: 1. Вычислять цвет (усредненный) на области
-// TODO: 1. Как-то перевести 3 цвета в сигнал от 0 до 1
-// TODO: 1. Строить график чсс в реальном времени 
 
 

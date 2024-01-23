@@ -1,15 +1,14 @@
 const config = {
-    clr_r: 0.7,
-    clr_g: 0.3,
+    clr_r: 1,
+    clr_g: 0,
     clr_b: 0,
     resampling: true,
     resampling_rate: 50,
-    smoothing: true,
+    smoothing: false,
     smoothing_window: 50,
-    centralize: false, 
-    min_frequency: 60, 
+    min_frequency: 40, 
     max_frequency: 150, 
-    pulse_window: 10
+    pulse_window: 20
 }
 
 const form = document.querySelector('#settings')
@@ -24,7 +23,6 @@ function initForm() {
     form.resampling_rate.value = config.resampling_rate
     form.smoothing.checked = config.smoothing
     form.smoothing_window.value = config.smoothing_window
-    form.centralize.checked = config.centralize
     form.min_frequency.value = config.min_frequency
     form.max_frequency.value = config.max_frequency
     form.pulse_window.value = config.pulse_window
@@ -44,5 +42,4 @@ form.addEventListener('submit', (e) => {
 
     config.resampling = form.resampling.checked
     config.smoothing = form.smoothing.checked
-    config.centralize = form.centralize.checked
 })

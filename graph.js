@@ -15,9 +15,10 @@ const signals = []
 
 const SIGNAL_MAX = 1
 
+const FFT_COUNT = 15000
 //МС
 const PERIOD_TIME = 50
-const MAX_TIME = 15000
+const MAX_TIME = 5000
 
 // N - следующая степень двойки после MAX_TIME
 
@@ -40,7 +41,6 @@ let pulses = []
 
 // 1. Изменить функцию сглаживания 
 // 2. Потестить FFT, сделать так, чтобы оно нормально работало и выводило пики
-// 3. Убрать штуку, что при моргании меняется график сигнала
 // 4. Нормально оформить графики
 
 
@@ -83,9 +83,8 @@ function getFrequencyGraph(FFToutput, N, length) // пики
     //n = 200
     //100 1000 1024 2048
     for (let i = 0; i < N; i++) {
-        //Почему такая формула? А вот хер знает...)
+        //Почему такая формула? 
         //Это интенсивность (на сколько высоко пика)
-        //
         frequencyGraph[i] = {
             intensity: (Math.pow(FFToutput[2 * i], 2) + Math.pow(FFToutput[2 * i + 1], 2)) / Math.pow(length, 2), // 
             frequency: i / (2 * N * (period / 1000))
@@ -100,9 +99,9 @@ function getFrequencyGraph(FFToutput, N, length) // пики
 // i/(2 * N)
 
 // Получаем частоту
-function getFrequency(signals, MAX_TIME) {
+function getFrequency(signals) {
     //FFT нужно вызывать от степени двойки
-    const N = Math.pow(2, Math.ceil(Math.log2(signals.length)))
+    const N = Math.pow(2, Math.ceil(Math.log2(FFT_COUNT)))
 
     const fft = new FFTJS(N * 2)
 
@@ -112,7 +111,7 @@ function getFrequency(signals, MAX_TIME) {
 
     const input = makeInput(signals, N) //массив сигналов 
 
-    fft.realTransform(output, input) //output = преобразование фурье массив хуй знает чего, который в 2 раза чем массив сигналов (из-за комплексной части)
+    fft.realTransform(output, input) //output = преобразование фурье массив фиг знает чего, который в 2 раза чем массив сигналов (из-за комплексной части)
     //в output лежит результат преобразования фурье ()
     // console.log(output)
 
@@ -139,7 +138,7 @@ async function addSignal(signal, uuid) {
     let processedSignals = signals
     if (config.resampling) processedSignals = resampling(processedSignals)
     if (config.smoothing) processedSignals = smoothSignal(processedSignals, config.smoothing_window)
-    processedSignals = normalizeSignal(processedSignals)
+    processedSignals = normalizeSignal(deleteTrend(processedSignals))
     const minSignal = 0;
     const maxSignal = 1;
 
@@ -152,11 +151,9 @@ async function addSignal(signal, uuid) {
 
     // frequencyGraph = [(f, i), (f, i), ..., (f, i)]
 
-    const frequencyGraph = getFrequency(processedSignals, MAX_TIME)
+    const frequencyGraph = getFrequency(processedSignals)
         .filter((value) => value.frequency >= min_frequency && value.frequency <= max_frequency)
 
-
-    
         //todo: убрать 1ю пику самую высокую
     const pulse = frequencyGraph[frequencyGraph.reduce((prev, cur, curIndex, self) => self[prev].intensity > cur.intensity ? prev : curIndex, 0)].frequency * 60 // пульс
 
@@ -248,10 +245,6 @@ function test(time, func) {
 }
 
 
-
-
-
-
 /** 
  * функция ожидания выполнения условия
  * 
@@ -270,7 +263,6 @@ async function waitForCondition(condition) {
     return new Promise(poll);
 }
 
-
 //разобраться
 function resampling(signals) {
     const linearInterpolate = (x1, x2, y1, y2, x) => {
@@ -287,6 +279,9 @@ function resampling(signals) {
     }).flat(1)
 }
 
-function centralize(signals) {
-    // const median = signals.
+
+function deleteTrend(signals){
+    const period = config.resampling ? PERIOD_TIME / config.resampling_rate : PERIOD_TIME
+    const trend = smoothSignal(signals, Math.round(1000 / period))
+    return signals.map((v, i) => v - trend[i])
 }

@@ -1,8 +1,6 @@
-
 //лаба 4 по графике
 //edge = [p1, p2]
 //p1 = [x, y]
-
 
 function getAreaColor(imgData, area){
     // console.log(imgData);
