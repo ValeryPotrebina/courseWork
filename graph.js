@@ -139,6 +139,8 @@ async function addSignal(signal, uuid) {
     if (config.resampling) processedSignals = resampling(processedSignals)
     if (config.smoothing) processedSignals = smoothSignal(processedSignals, config.smoothing_window)
     processedSignals = normalizeSignal(deleteTrend(processedSignals))
+    
+    processedSignals = centralize(processedSignals)
     const minSignal = 0;
     const maxSignal = 1;
 
@@ -285,3 +287,9 @@ function deleteTrend(signals){
     const trend = smoothSignal(signals, Math.round(1000 / period))
     return signals.map((v, i) => v - trend[i])
 }
+
+function centralize(signals){
+    const m = signals.reduce((p, c) => p+c, 0) / signals.length
+    return signals.map(v => v - m)
+  }
+  

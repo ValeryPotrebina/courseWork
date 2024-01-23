@@ -5,10 +5,10 @@ const config = {
     resampling: true,
     resampling_rate: 50,
     smoothing: false,
-    smoothing_window: 50,
-    min_frequency: 40, 
-    max_frequency: 150, 
-    pulse_window: 20
+    smoothing_window: 60,
+    min_frequency: 40,
+    max_frequency: 150,
+    pulse_window: 100
 }
 
 const form = document.querySelector('#settings')
