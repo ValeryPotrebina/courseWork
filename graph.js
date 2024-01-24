@@ -25,7 +25,7 @@ const MAX_TIME = 10000
 
 // КОЛ-ВО КОЛЕБАНИЙ В СЕКУНДУ 
 
-// const MIN_FREQUENCY = 20 / 60
+// const MIN_FREQUENCY = 20 / 60 гц
 // const MAX_FREQUENCY = 120 / 60
 const input = []
 const output = []
@@ -189,7 +189,7 @@ async function addSignal(signal, uuid) {
     // const frequencyGraph = getFrequency(testSignals, time).filter((value) => value.frequency >= MIN_FREQUENCY && value.frequency <= MAX_FREQUENCY)
     // drawFFTGraph(frequencyGraph, MIN_FREQUENCY, MAX_FREQUENCY, 0, Math.max(...frequencyGraph.map((value) => value.intensity)))
 }
-// 
+// //2 k/s -> 120 bpm
 
 function drawGraph(signals, minTime, maxTime, minSignal, maxSignal) {
     const height = maxSignal - minSignal
